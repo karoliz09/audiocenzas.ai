@@ -1,0 +1,125 @@
+# One stem per line. '*' = any letters (ending or prefix).
+# Diacritics are ignored: write "sudas" instead of "šūdas".
+# Careful with short stems: "sud*" would also catch "sudaryti", "sik*" - "šikšnosparnis".
+
+# --- blyat ---
+blyat*
+bliat*
+bliad*
+blyad*
+blet*
+bleat*
+blemb*
+bliamb*
+blyamb*
+
+# --- nachui ---
+nachui
+nachuj
+nahui
+nahuj
+naxui
+naxuj
+nak*
+
+# --- chuj ---
+chuj*
+huj
+hujn*
+chujn*
+
+# --- pyzd ---
+pyzd*
+pizd*
+
+# --- joban / jobt ---
+jobt*
+jopt*
+joban*
+jeban*
+jobaut*
+jobnut*
+dalbajob*
+dolbajob*
+dolboj*
+eblan*
+jeblan*
+
+# --- suka / kurva ---
+suka
+sukos
+sukom
+sukai
+kurv*
+kurw*
+
+# --- pisti ---
+pis*
+pisti
+pisa
+pisu
+pisk
+piskit
+pisasi
+pisimas
+pisikas
+*sipisk
+*sipiskit
+*sipisti
+*sipises
+*sipisusi
+uzpist*
+isipist*
+atpisk
+atpiskit
+
+# --- sudas / sikna ---
+sudas
+sudo
+sudu
+sudui
+sudai
+sudais
+sudinas
+sudina
+sudinai
+sudzi*
+sikna*
+siknius*
+siknaskyl*
+siknal*
+sikt
+sikti
+prisikt*
+prisisik*
+apsisik*
+
+# --- pyderas etc. ---
+pyder*
+pider*
+pidar*
+pydar*
+pedik*
+byb*
+bib*
+mudak*
+gandon*
+loch
+lochas
+lochai
+lochu
+kekse
+kekses
+keksei
+sliundr*
+debil*
+
+# --- English ---
+fuck*
+shit*
+bitch*
+asshole*
+cunt*
+motherfuck*
+dick
+dickhead*
