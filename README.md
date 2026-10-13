@@ -8,8 +8,8 @@ Built primarily for Lithuanian (plus common Russian-derived and English profanit
 
 - Web UI (Gradio): review detected words before exporting, untick false positives, add missed ones by hand
 - Click a row to preview the clip (±1 s)
-- Full transcript with highlighted hits
-- `beep`, `mute` or `cut` mode (`cut` removes the fragment from audio and video; video is re-encoded, so it is slower)
+- Full transcript with each hit tagged by its action; click any word to change its action or add a missed one
+- Per-word action: `beep`, `mute`, `cut` or `skip` - click a word's action in the table to change it, or set all at once (`cut` removes the fragment from audio and video; video is re-encoded, so it is slower)
 - Runs fully offline; uses an NVIDIA GPU automatically if available, otherwise CPU
 - Command-line mode for batch use
 

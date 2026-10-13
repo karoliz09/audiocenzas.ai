@@ -133,29 +133,34 @@ def has_video(media: Path) -> bool:
     return bool(json.loads(r.stdout).get("streams"))
 
 
-def censor(media: Path, out: Path, intervals, mode: str):
-    enable = "+".join(f"between(t,{s:.3f},{e:.3f})" for s, e in intervals)
+def _between(intervals) -> str:
+    return "+".join(f"between(t,{s:.3f},{e:.3f})" for s, e in intervals)
+
+
+def censor(media: Path, out: Path, actions: dict):
+    """actions: {"beep"|"mute"|"cut": [(start, end), ...]}; each kind can be empty."""
+    beep, mute, cut = (merge(actions.get(k, [])) for k in ("beep", "mute", "cut"))
     video = has_video(media)
-    if mode == "cut":
-        # Drop the intervals from both streams; video has to be re-encoded.
-        graph = f"[0:a]aselect='not({enable})',asetpts=N/SR/TB[aout]"
+    graph, a = [], "[0:a]"
+    if beep or mute:
+        graph.append(f"{a}volume=0:enable='{_between(merge(beep + mute))}'[silenced]")
+        a = "[silenced]"
+    if beep:
+        on = _between(beep)
+        graph.append(f"sine=f=1000:sample_rate=44100,volume=4:enable='{on}',volume=0:enable='not({on})'[tone]")
+        graph.append(f"{a}[tone]amix=inputs=2:duration=first:normalize=0[beeped]")
+        a = "[beeped]"
+    if cut:
+        # Cut intervals are in original time, so the cut runs last; video has to be re-encoded.
+        keep = f"not({_between(cut)})"
+        graph.append(f"{a}aselect='{keep}',asetpts=N/SR/TB[aout]")
         if video:
-            graph += f";[0:v]select='not({enable})',setpts=N/FRAME_RATE/TB[vout]"
-        cmd = ["ffmpeg", "-y", "-i", str(media), "-filter_complex", graph, "-map", "[aout]"]
-        if video:
-            cmd += ["-map", "[vout]"]
-        subprocess.run(cmd + [str(out)], check=True)
-        return
-    if mode == "mute":
-        graph = f"[0:a]volume=0:enable='{enable}'[aout]"
+            graph.append(f"[0:v]select='{keep}',setpts=N/FRAME_RATE/TB[vout]")
     else:
-        graph = (f"[0:a]volume=0:enable='{enable}'[m];"
-                 f"sine=f=1000:sample_rate=44100,volume=4:enable='{enable}',"
-                 f"volume=0:enable='not({enable})'[b];"
-                 f"[m][b]amix=inputs=2:duration=first:normalize=0[aout]")
-    cmd = ["ffmpeg", "-y", "-i", str(media), "-filter_complex", graph, "-map", "[aout]"]
+        graph.append(f"{a}anull[aout]")
+    cmd = ["ffmpeg", "-y", "-i", str(media), "-filter_complex", ";".join(graph), "-map", "[aout]"]
     if video:
-        cmd += ["-map", "0:v", "-c:v", "copy"]
+        cmd += ["-map", "[vout]"] if cut else ["-map", "0:v", "-c:v", "copy"]
     cmd.append(str(out))
     subprocess.run(cmd, check=True)
 
@@ -178,7 +183,7 @@ def main():
         return
     for s, e, w in hits:
         print(f"  {s:8.2f}-{e:8.2f}  {w}")
-    censor(args.input, out, merge(hits), args.mode)
+    censor(args.input, out, {args.mode: [(s, e) for s, e, _ in hits]})
     print(f"Rasta {len(hits)}. Issaugota: {out}")
 
 
