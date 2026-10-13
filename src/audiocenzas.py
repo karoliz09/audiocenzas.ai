@@ -1,7 +1,7 @@
 """AudioCenzas.ai - mutes profanity in audio/video files.
 
 Usage:
-    python src/audiocenzas.py input.mp4 [-o output.mp4] [--mode mute|beep] [--lang lt]
+    python src/audiocenzas.py input.mp4 [-o output.mp4] [--mode mute|beep|cut] [--lang lt]
 """
 import argparse
 import functools
@@ -135,6 +135,17 @@ def has_video(media: Path) -> bool:
 
 def censor(media: Path, out: Path, intervals, mode: str):
     enable = "+".join(f"between(t,{s:.3f},{e:.3f})" for s, e in intervals)
+    video = has_video(media)
+    if mode == "cut":
+        # Drop the intervals from both streams; video has to be re-encoded.
+        graph = f"[0:a]aselect='not({enable})',asetpts=N/SR/TB[aout]"
+        if video:
+            graph += f";[0:v]select='not({enable})',setpts=N/FRAME_RATE/TB[vout]"
+        cmd = ["ffmpeg", "-y", "-i", str(media), "-filter_complex", graph, "-map", "[aout]"]
+        if video:
+            cmd += ["-map", "[vout]"]
+        subprocess.run(cmd + [str(out)], check=True)
+        return
     if mode == "mute":
         graph = f"[0:a]volume=0:enable='{enable}'[aout]"
     else:
@@ -143,7 +154,7 @@ def censor(media: Path, out: Path, intervals, mode: str):
                  f"volume=0:enable='not({enable})'[b];"
                  f"[m][b]amix=inputs=2:duration=first:normalize=0[aout]")
     cmd = ["ffmpeg", "-y", "-i", str(media), "-filter_complex", graph, "-map", "[aout]"]
-    if has_video(media):
+    if video:
         cmd += ["-map", "0:v", "-c:v", "copy"]
     cmd.append(str(out))
     subprocess.run(cmd, check=True)
@@ -153,7 +164,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("input", type=Path)
     ap.add_argument("-o", "--output", type=Path)
-    ap.add_argument("--mode", choices=["mute", "beep"], default="mute")
+    ap.add_argument("--mode", choices=["mute", "beep", "cut"], default="mute")
     ap.add_argument("--lang", default=None, help="pvz. lt, en (tuscia = automatiskai)")
     ap.add_argument("--model", default=None, help="tiny/base/small/medium/large-v3 (tuscia = pagal GPU/CPU)")
     ap.add_argument("--words", type=Path, default=Path(__file__).resolve().parent.parent / "profanity.txt")

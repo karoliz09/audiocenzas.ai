@@ -9,7 +9,7 @@ Built primarily for Lithuanian (plus common Russian-derived and English profanit
 - Web UI (Gradio): review detected words before exporting, untick false positives, add missed ones by hand
 - Click a row to preview the clip (±1 s)
 - Full transcript with highlighted hits
-- `beep` or `mute` mode
+- `beep`, `mute` or `cut` mode (`cut` removes the fragment from audio and video; video is re-encoded, so it is slower)
 - Runs fully offline; uses an NVIDIA GPU automatically if available, otherwise CPU
 - Command-line mode for batch use
 
@@ -49,7 +49,7 @@ python src/app.py
 ### Command line
 
 ```bash
-python src/audiocenzas.py input.mp4 [-o output.mp4] [--mode mute|beep] [--lang lt] [--model small] [--words profanity.txt]
+python src/audiocenzas.py input.mp4 [-o output.mp4] [--mode mute|beep|cut] [--lang lt] [--model small] [--words profanity.txt]
 ```
 
 ## Word list
